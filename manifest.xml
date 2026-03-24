@@ -14,9 +14,9 @@
   <Description DefaultValue="Capture email sender details and add them as contacts in GoHighLevel (LeadConnector) CRM."/>
 
   <!-- ── Icons (hosted on GitHub Pages) ───────────────────────────────────── -->
-  <IconUrl DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/assets/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/assets/icon-64.png"/>
-  <SupportUrl DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/"/>
+  <IconUrl DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/assets/icon-64.png"/>
+  <SupportUrl DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/"/>
 
   <!-- ── Base hosts (legacy fallback) ────────────────────────────────────── -->
   <Hosts>
@@ -34,7 +34,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/taskpane.html"/>
+        <SourceLocation DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/taskpane.html"/>
         <RequestedHeight>300</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -98,12 +98,12 @@
     <!-- ── Resource strings ──────────────────────────────────────────────── -->
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/assets/icon-16.png"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/assets/icon-32.png"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/assets/icon-80.png"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/taskpane.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel"              DefaultValue="GHL CRM"/>
