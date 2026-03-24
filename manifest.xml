@@ -18,6 +18,28 @@
   <HighResolutionIconUrl DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/assets/icon-64.png"/>
   <SupportUrl DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/"/>
 
+  <!-- ── Base hosts (legacy fallback) ────────────────────────────────────── -->
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+
+  <!-- ── Base requirements (legacy fallback) ──────────────────────────────── -->
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.1"/>
+    </Sets>
+  </Requirements>
+
+  <!-- ── Base form settings / source location (legacy fallback) ───────────── -->
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/taskpane.html"/>
+        <RequestedHeight>300</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+
   <!-- ── Permissions ───────────────────────────────────────────────────────── -->
   <!-- ReadItem: read the currently open email (sender, subject, body) -->
   <Permissions>ReadItem</Permissions>
@@ -60,7 +82,6 @@
                     <bt:Image size="80"  resid="Icon.80x80"/>
                   </Icon>
                   <Action xsi:type="ShowTaskpane">
-                    <TaskpaneId>ButtonId1</TaskpaneId>
                     <SourceLocation resid="Taskpane.Url"/>
                   </Action>
                 </Control>
