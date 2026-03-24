@@ -3,7 +3,6 @@
   xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
-  xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
   xsi:type="MailApp">
 
   <!-- ── Identity ──────────────────────────────────────────────────────────── -->
@@ -44,9 +43,6 @@
 
         <DesktopFormFactor>
 
-          <!-- ── Ribbon button that opens the taskpane ───────────────────── -->
-          <FunctionFile resid="Commands.Url"/>
-
           <ExtensionPoint xsi:type="MessageReadCommandSurface">
             <OfficeTab id="TabDefault">
               <Group id="msgReadGroup">
@@ -86,8 +82,7 @@
         <bt:Image id="Icon.80x80" DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Commands.Url"   DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/commands.html"/>
-        <bt:Url id="Taskpane.Url"   DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/taskpane.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://karan12chawla.github.io/ghl-outlook-addin/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel"              DefaultValue="GHL CRM"/>
