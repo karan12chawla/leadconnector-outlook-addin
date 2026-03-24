@@ -1,0 +1,244 @@
+/* ── GHL Contact Capture – taskpane.css ────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #0f172a;
+  --bg-card:    rgba(255,255,255,0.04);
+  --bg-input:   rgba(255,255,255,0.05);
+  --border:     rgba(255,255,255,0.08);
+  --border-focus: #38bdf8;
+  --text:       #e2e8f0;
+  --text-muted: #64748b;
+  --text-dim:   #475569;
+  --accent:     #0ea5e9;
+  --accent-h:   #38bdf8;
+  --success-bg: rgba(16,185,129,0.12);
+  --success:    #6ee7b7;
+  --success-bd: rgba(16,185,129,0.25);
+  --error-bg:   rgba(239,68,68,0.10);
+  --error:      #fca5a5;
+  --error-bd:   rgba(239,68,68,0.22);
+  --warn-bg:    rgba(251,191,36,0.08);
+  --warn:       #fcd34d;
+  --warn-bd:    rgba(251,191,36,0.2);
+  --font:       'DM Sans', system-ui, sans-serif;
+  --font-mono:  'DM Mono', 'Courier New', monospace;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 16px;
+}
+
+.hidden { display: none !important; }
+
+/* ── Loading ────────────────────────────────────────────────────────────── */
+#loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 1;
+  min-height: 200px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.loading-icon {
+  width: 44px; height: 44px;
+  background: rgba(14,165,233,0.12);
+  border: 1px solid rgba(14,165,233,0.2);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.95); }
+}
+
+/* ── No config warning ──────────────────────────────────────────────────── */
+#no-config {
+  padding: 16px;
+}
+
+.warn-box {
+  padding: 16px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-bd);
+  border-radius: 10px;
+  text-align: center;
+  color: var(--warn);
+}
+
+.warn-icon { font-size: 24px; margin-bottom: 8px; }
+.warn-box h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.warn-box p  { font-size: 12px; opacity: 0.8; line-height: 1.5; }
+
+/* ── Main panel ─────────────────────────────────────────────────────────── */
+#main { padding: 14px 14px 0; display: flex; flex-direction: column; gap: 14px; }
+
+/* ── Contact card ───────────────────────────────────────────────────────── */
+.contact-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 13px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+}
+
+.contact-info { min-width: 0; }
+.contact-name  { font-size: 13px; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.contact-email { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; font-family: var(--font-mono); }
+
+/* ── Status ─────────────────────────────────────────────────────────────── */
+.status {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px; font-weight: 500; line-height: 1.4;
+}
+.status.ok  { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-bd); }
+.status.err { background: var(--error-bg);   color: var(--error);   border: 1px solid var(--error-bd);   }
+
+/* ── Form ───────────────────────────────────────────────────────────────── */
+.form { display: flex; flex-direction: column; gap: 11px; }
+
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+
+.field label {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted);
+}
+
+.opt { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-dim); }
+
+.field input,
+.field textarea {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 10px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: #f1f5f9;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  resize: vertical;
+  -webkit-appearance: none;
+}
+
+.field input::placeholder,
+.field textarea::placeholder { color: #1e3a5f; }
+
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--border-focus);
+  background: rgba(56,189,248,0.05);
+}
+
+.input-wrap { position: relative; }
+.input-wrap input { padding-right: 32px; }
+
+.toggle-pw {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--text-dim);
+  cursor: pointer; padding: 2px; display: flex; align-items: center;
+  transition: color 0.12s;
+}
+.toggle-pw:hover { color: var(--text-muted); }
+
+/* ── Actions ────────────────────────────────────────────────────────────── */
+.actions { padding-top: 2px; }
+
+.btn-primary {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 11px;
+  background: var(--accent);
+  color: #fff; border: none; border-radius: 9px;
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+}
+.btn-primary:hover:not(:disabled) { background: var(--accent-h); transform: translateY(-1px); }
+.btn-primary:active  { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.spin { animation: rot 0.75s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
+
+/* ── Divider ─────────────────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+  flex-shrink: 0;
+}
+
+/* ── Settings panel ─────────────────────────────────────────────────────── */
+#settings-panel {
+  margin: 14px 14px 0;
+  padding: 14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.settings-header {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.btn-save {
+  width: 100%; padding: 9px;
+  background: rgba(14,165,233,0.15);
+  color: var(--accent); border: 1px solid rgba(14,165,233,0.25);
+  border-radius: 8px;
+  font-family: var(--font); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s, border-color 0.15s;
+}
+.btn-save:hover { background: rgba(14,165,233,0.25); border-color: rgba(14,165,233,0.4); }
+
+.save-status {
+  font-size: 11px; color: var(--success); text-align: center;
+  transition: opacity 0.3s;
+}
+
+.settings-hint {
+  font-size: 10.5px; color: var(--text-dim); line-height: 1.6;
+}
+.settings-hint strong { color: var(--text-muted); }
