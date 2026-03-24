@@ -18,6 +18,12 @@
   <HighResolutionIconUrl DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/assets/icon-64.png"/>
   <SupportUrl DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/"/>
 
+  <!-- ── Trusted domains for GHL API calls ───────────────────────────────── -->
+  <AppDomains>
+    <AppDomain>https://services.leadconnectorhq.com</AppDomain>
+    <AppDomain>https://rest.gohighlevel.com</AppDomain>
+  </AppDomains>
+
   <!-- ── Base hosts (legacy fallback) ────────────────────────────────────── -->
   <Hosts>
     <Host Name="Mailbox"/>
