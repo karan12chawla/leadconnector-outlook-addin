@@ -87,10 +87,11 @@ function loadContact() {
   }
 }
 
-function renderContact(name, email, subject) {
+async function renderContact(name, email, subject) {
   existingContactId = null;
   el('btn-label').textContent = 'Add to GHL';
   el('btn-add').disabled = false;
+
   const parts    = name.trim().split(' ');
   const fname    = parts[0] || '';
   const lname    = parts.slice(1).join(' ') || '';
@@ -107,6 +108,18 @@ function renderContact(name, email, subject) {
 
   hide('loading');
   show('contact-body');
+
+  // Auto-check GHL for existing contact as soon as email is known
+  const apiKey     = Store.get('ghlApiKey');
+  const locationId = Store.get('ghlLocationId');
+  if (email && apiKey && locationId) {
+    setStatus('Checking GHL…', true);
+    const existing = await searchContact(email, apiKey, locationId);
+    clearStatus();
+    if (existing) {
+      prefillExisting(existing);
+    }
+  }
 }
 
 // ── Load saved settings into fields ──────────────────────────────────────
@@ -247,14 +260,6 @@ async function submitContact() {
     } catch (err) {
       setStatus(`✗ ${err.message || 'Something went wrong.'}`, false);
     }
-    setLoading(false);
-    return;
-  }
-
-  // ── Search first — check if contact already exists ────────────────────────
-  const existing = await searchContact(email, apiKey, locationId);
-  if (existing) {
-    prefillExisting(existing);
     setLoading(false);
     return;
   }
