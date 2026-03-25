@@ -42,14 +42,20 @@ Office.onReady(info => {
     return;
   }
 
-  loadContact();
-  loadSettings();
   bindEvents();
+  loadSettings();
+  loadContact();
 });
 
 // ── Load contact from Office.js API ──────────────────────────────────────
 function loadContact() {
   const item = Office.context.mailbox.item;
+  if (!item) {
+    hide('loading');
+    setStatus('Open an email to use this add-in.', false);
+    show('main');
+    return;
+  }
 
   // Both from.getAsync and subject.getAsync are async — run in parallel
   let name = '', email = '', subject = '';
