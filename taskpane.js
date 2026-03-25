@@ -1,20 +1,14 @@
 // ── GHL Contact Capture – taskpane.js ─────────────────────────────────────
-// Uses Office.js to read sender info directly from Outlook's API.
-// No DOM scraping. Works on Outlook Web, Desktop (Win/Mac), and Mobile.
-
 'use strict';
 
-// ── Storage helpers (localStorage — this is our own hosted page) ───────────
 const Store = {
-  get: key         => localStorage.getItem(key) || '',
-  set: (key, val)  => localStorage.setItem(key, val),
+  get: key        => localStorage.getItem(key) || '',
+  set: (key, val) => localStorage.setItem(key, val),
 };
 
-// ── DOM helpers ───────────────────────────────────────────────────────────
 const el = id => document.getElementById(id);
-
 function show(id) { el(id).classList.remove('hidden'); }
-function hide(id) { el(id).classList.add('hidden');    }
+function hide(id) { el(id).classList.add('hidden'); }
 
 function setStatus(msg, ok) {
   const s = el('status');
@@ -33,53 +27,67 @@ function setLoading(on) {
   el('btn-add').disabled = on;
 }
 
-// ── Office.js initialisation ──────────────────────────────────────────────
-Office.onReady(info => {
-  if (info.host !== Office.HostType.Outlook) {
-    hide('loading');
-    setStatus('This add-in only works in Outlook.', false);
-    show('main');
-    return;
-  }
+// ── Screen navigation ─────────────────────────────────────────────────────
+function showScreen(name) {
+  ['screen-contact', 'screen-settings'].forEach(id => hide(id));
+  show('screen-' + name);
+}
 
+// ── Office.js initialisation ──────────────────────────────────────────────
+Office.onReady(() => {
   bindEvents();
   loadSettings();
-  loadContact();
+
+  const hasCredentials = Store.get('ghlApiKey') && Store.get('ghlLocationId');
+  if (!hasCredentials) {
+    showScreen('settings');
+  } else {
+    showScreen('contact');
+    loadContact();
+  }
 });
 
-// ── Load contact from Office.js API ──────────────────────────────────────
+// ── Load contact from email ───────────────────────────────────────────────
 function loadContact() {
-  const item = Office.context.mailbox.item;
+  const item = Office.context.mailbox && Office.context.mailbox.item;
+
+  // Safety timeout — show empty form after 4s if nothing resolves
+  const timeout = setTimeout(() => renderContact('', '', ''), 4000);
+
   if (!item) {
-    hide('loading');
-    setStatus('Open an email to use this add-in.', false);
-    show('main');
+    clearTimeout(timeout);
+    renderContact('', '', '');
     return;
   }
 
-  // item.from has getAsync in newer Outlook builds; fall back to sync access
-  if (item.from && typeof item.from.getAsync === 'function') {
-    item.from.getAsync(result => {
-      const sender = result.status === Office.AsyncResultStatus.Succeeded ? result.value : null;
+  try {
+    // New Outlook: item.from is a From object with getAsync
+    if (item.from && typeof item.from.getAsync === 'function') {
+      item.from.getAsync(result => {
+        clearTimeout(timeout);
+        const sender = result.status === Office.AsyncResultStatus.Succeeded ? result.value : null;
+        renderContact(
+          sender?.displayName  || '',
+          sender?.emailAddress || '',
+          typeof item.subject === 'string' ? item.subject : ''
+        );
+      });
+    } else {
+      // Classic Outlook: item.from is a plain EmailAddressDetails object
+      clearTimeout(timeout);
       renderContact(
-        sender?.displayName  || '',
-        sender?.emailAddress || '',
+        item.from?.displayName  || '',
+        item.from?.emailAddress || '',
         typeof item.subject === 'string' ? item.subject : ''
       );
-    });
-  } else {
-    renderContact(
-      item.from?.displayName  || '',
-      item.from?.emailAddress || '',
-      typeof item.subject === 'string' ? item.subject : ''
-    );
+    }
+  } catch (e) {
+    clearTimeout(timeout);
+    renderContact('', '', '');
   }
 }
 
 function renderContact(name, email, subject) {
-  hide('loading');
-  checkConfig();
-
   const parts    = name.trim().split(' ');
   const fname    = parts[0] || '';
   const lname    = parts.slice(1).join(' ') || '';
@@ -94,18 +102,8 @@ function renderContact(name, email, subject) {
   el('c-name').textContent  = name  || 'Unknown sender';
   el('c-email').textContent = email || 'No email detected';
 
-  show('main');
-}
-
-// ── Check if API credentials are saved ───────────────────────────────────
-function checkConfig() {
-  const hasKey = !!Store.get('ghlApiKey');
-  const hasLoc = !!Store.get('ghlLocationId');
-  if (!hasKey || !hasLoc) {
-    show('no-config');
-  } else {
-    hide('no-config');
-  }
+  hide('loading');
+  show('contact-body');
 }
 
 // ── Load saved settings into fields ──────────────────────────────────────
@@ -119,24 +117,43 @@ function loadSettings() {
 // ── Bind all UI events ────────────────────────────────────────────────────
 function bindEvents() {
 
+  // Navigate to settings
+  el('btn-go-settings').addEventListener('click', () => showScreen('settings'));
+
+  // Navigate back to contact
+  el('btn-go-contact').addEventListener('click', () => {
+    showScreen('contact');
+    // If contact body isn't loaded yet, trigger load
+    if (el('contact-body').classList.contains('hidden') &&
+        el('loading').classList.contains('hidden')) {
+      show('loading');
+      loadContact();
+    }
+  });
+
   // Save settings
   el('btn-save').addEventListener('click', () => {
     const key = el('s-apikey').value.trim();
     const loc = el('s-locid').value.trim();
     if (!key || !loc) {
-      el('save-status').textContent = '✗ Both fields required';
+      el('save-status').textContent = '✗ Both fields are required';
       el('save-status').style.color = 'var(--error)';
       show('save-status');
       setTimeout(() => hide('save-status'), 2500);
       return;
     }
-    Store.set('ghlApiKey',    key);
+    Store.set('ghlApiKey',     key);
     Store.set('ghlLocationId', loc);
     el('save-status').textContent = '✓ Saved';
     el('save-status').style.color = 'var(--success)';
     show('save-status');
-    setTimeout(() => hide('save-status'), 2000);
-    checkConfig();
+    setTimeout(() => {
+      hide('save-status');
+      showScreen('contact');
+      if (el('contact-body').classList.contains('hidden')) {
+        loadContact();
+      }
+    }, 1000);
   });
 
   // Toggle API key visibility
@@ -149,10 +166,9 @@ function bindEvents() {
       : '<line x1="1" y1="1" x2="23" y2="23"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="17.94" y1="17.94" x2="23" y2="23"/>';
   });
 
-  // Submit contact to GHL
+  // Submit contact
   el('btn-add').addEventListener('click', submitContact);
 
-  // Enter key on fields triggers submit
   ['f-fname','f-lname','f-email','f-phone','f-company','f-tags'].forEach(id => {
     el(id).addEventListener('keydown', e => { if (e.key === 'Enter') submitContact(); });
   });
@@ -176,8 +192,7 @@ async function submitContact() {
   const locationId = Store.get('ghlLocationId');
 
   if (!apiKey || !locationId) {
-    setStatus('API key or Location ID missing — fill in Settings below.', false);
-    show('no-config');
+    setStatus('API credentials missing — go to Settings.', false);
     return;
   }
 
@@ -197,13 +212,12 @@ async function submitContact() {
   setLoading(true);
 
   try {
-    // ── Try GHL v2 (LeadConnector) first ─────────────────────────────────
-    const res = await fetch('https://services.leadconnectorhq.com/contacts/', {
+    const res  = await fetch('https://services.leadconnectorhq.com/contacts/', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type':  'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'Version': '2021-07-28',
+        'Version':       '2021-07-28',
       },
       body: JSON.stringify(payload),
     });
@@ -211,7 +225,6 @@ async function submitContact() {
     const data = await res.json();
 
     if (res.ok && data.contact) {
-      // Attach note if provided
       if (note) await addNote(data.contact.id, note, apiKey);
       setStatus('✓ Contact added to GoHighLevel!', true);
       el('btn-add').disabled = true;
@@ -219,14 +232,13 @@ async function submitContact() {
       return;
     }
 
-    // Surface GHL error message if available
     if (data.message) throw new Error(data.message);
 
-    // ── Fallback: GHL v1 ──────────────────────────────────────────────────
-    const res1 = await fetch('https://rest.gohighlevel.com/v1/contacts/', {
+    // Fallback: GHL v1
+    const res1  = await fetch('https://rest.gohighlevel.com/v1/contacts/', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type':  'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify(payload),
@@ -255,13 +267,13 @@ async function addNote(contactId, body, apiKey) {
     await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/notes`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type':  'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'Version': '2021-07-28',
+        'Version':       '2021-07-28',
       },
       body: JSON.stringify({ body }),
     });
   } catch (_) {
-    // Note failure is non-critical — don't surface to user
+    // Non-critical — don't surface to user
   }
 }
