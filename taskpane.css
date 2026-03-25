@@ -171,6 +171,7 @@ body {
 
 .opt { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-dim); }
 
+.field select,
 .field input,
 .field textarea {
   width: 100%;
@@ -190,7 +191,11 @@ body {
 .field input::placeholder,
 .field textarea::placeholder { color: #1e3a5f; }
 
+.field select { cursor: pointer; }
+.field select option { background: #1e293b; }
+
 .field input:focus,
+.field select:focus,
 .field textarea:focus {
   border-color: var(--border-focus);
   background: rgba(56,189,248,0.05);

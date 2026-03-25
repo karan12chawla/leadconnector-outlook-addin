@@ -211,6 +211,7 @@ async function submitContact() {
   const email   = el('f-email').value.trim();
   const phone   = el('f-phone').value.trim();
   const company = el('f-company').value.trim();
+  const type    = el('f-type').value;
   const tagsRaw = el('f-tags').value.trim();
   const note    = el('f-note').value.trim();
 
@@ -233,6 +234,7 @@ async function submitContact() {
     locationId,
     ...(phone   && { phone }),
     ...(company && { companyName: company }),
+    ...(type      && { type }),
     ...(tags.length && { tags }),
     source: 'Outlook Add-in – GHL Contact Capture',
   };
@@ -336,6 +338,7 @@ function prefillExisting(c) {
   el('f-email').value   = c.email       || '';
   el('f-phone').value   = c.phone       || '';
   el('f-company').value = c.companyName || '';
+  el('f-type').value    = c.type        || '';
   el('f-tags').value    = (c.tags || []).join(', ');
   el('btn-label').textContent = 'Update in GHL';
   setWarn('Contact already exists — fields pre-filled. Edit and click Update.');
