@@ -57,11 +57,26 @@ function loadContact() {
     return;
   }
 
-  // In read mode, from and subject are synchronous properties
-  const name    = item.from?.displayName  || '';
-  const email   = item.from?.emailAddress || '';
-  const subject = item.subject            || '';
+  // item.from has getAsync in newer Outlook builds; fall back to sync access
+  if (item.from && typeof item.from.getAsync === 'function') {
+    item.from.getAsync(result => {
+      const sender = result.status === Office.AsyncResultStatus.Succeeded ? result.value : null;
+      renderContact(
+        sender?.displayName  || '',
+        sender?.emailAddress || '',
+        typeof item.subject === 'string' ? item.subject : ''
+      );
+    });
+  } else {
+    renderContact(
+      item.from?.displayName  || '',
+      item.from?.emailAddress || '',
+      typeof item.subject === 'string' ? item.subject : ''
+    );
+  }
+}
 
+function renderContact(name, email, subject) {
   hide('loading');
   checkConfig();
 
