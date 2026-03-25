@@ -88,6 +88,9 @@ function loadContact() {
 }
 
 function renderContact(name, email, subject) {
+  existingContactId = null;
+  el('btn-label').textContent = 'Add to GHL';
+  el('btn-add').disabled = false;
   const parts    = name.trim().split(' ');
   const fname    = parts[0] || '';
   const lname    = parts.slice(1).join(' ') || '';
@@ -174,6 +177,16 @@ function bindEvents() {
   });
 }
 
+// ── Status helpers ────────────────────────────────────────────────────────
+function setWarn(msg) {
+  const s = el('status');
+  s.textContent = msg;
+  s.className   = 'status warn';
+}
+
+// ── Track existing contact for update mode ────────────────────────────────
+let existingContactId = null;
+
 // ── Submit contact to GoHighLevel ─────────────────────────────────────────
 async function submitContact() {
   clearStatus();
@@ -211,6 +224,34 @@ async function submitContact() {
 
   setLoading(true);
 
+  // ── Update mode (contact already existed) ────────────────────────────────
+  if (existingContactId) {
+    try {
+      const res = await fetch(`https://services.leadconnectorhq.com/contacts/${existingContactId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'Version':       '2021-07-28',
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (note) await addNote(existingContactId, note, apiKey);
+        setStatus('✓ Contact updated in GoHighLevel!', true);
+        el('btn-add').disabled = true;
+      } else {
+        throw new Error(data.message || `HTTP ${res.status}`);
+      }
+    } catch (err) {
+      setStatus(`✗ ${err.message || 'Something went wrong.'}`, false);
+    }
+    setLoading(false);
+    return;
+  }
+
+  // ── Create mode ───────────────────────────────────────────────────────────
   try {
     const res  = await fetch('https://services.leadconnectorhq.com/contacts/', {
       method: 'POST',
@@ -229,6 +270,14 @@ async function submitContact() {
       setStatus('✓ Contact added to GoHighLevel!', true);
       el('btn-add').disabled = true;
       setLoading(false);
+      return;
+    }
+
+    // Detect duplicate
+    const isDuplicate = !res.ok && /exist|duplicate/i.test(data.message || '');
+    if (isDuplicate) {
+      setLoading(false);
+      await handleExistingContact(email, apiKey, locationId);
       return;
     }
 
@@ -251,6 +300,12 @@ async function submitContact() {
       setStatus('✓ Contact added to GoHighLevel!', true);
       el('btn-add').disabled = true;
     } else {
+      const isDup1 = /exist|duplicate/i.test(data1.message || '');
+      if (isDup1) {
+        setLoading(false);
+        await handleExistingContact(email, apiKey, locationId);
+        return;
+      }
       throw new Error(data1.message || `HTTP ${res1.status}`);
     }
 
@@ -259,6 +314,34 @@ async function submitContact() {
   }
 
   setLoading(false);
+}
+
+// ── Fetch existing contact and pre-fill form ──────────────────────────────
+async function handleExistingContact(email, apiKey, locationId) {
+  try {
+    const res  = await fetch(
+      `https://services.leadconnectorhq.com/contacts/search?locationId=${encodeURIComponent(locationId)}&query=${encodeURIComponent(email)}&limit=1`,
+      { headers: { 'Authorization': `Bearer ${apiKey}`, 'Version': '2021-07-28' } }
+    );
+    const data = await res.json();
+    const c    = data.contacts?.[0];
+
+    if (c) {
+      existingContactId = c.id;
+      el('f-fname').value   = c.firstName   || '';
+      el('f-lname').value   = c.lastName    || '';
+      el('f-email').value   = c.email       || '';
+      el('f-phone').value   = c.phone       || '';
+      el('f-company').value = c.companyName || '';
+      el('f-tags').value    = (c.tags || []).join(', ');
+      el('btn-label').textContent = 'Update in GHL';
+      setWarn('Contact already exists — fields pre-filled. Edit and click Update.');
+    } else {
+      setWarn('Contact already exists in GHL.');
+    }
+  } catch (err) {
+    setWarn('Contact already exists in GHL.');
+  }
 }
 
 // ── Attach a note to a GHL contact ───────────────────────────────────────

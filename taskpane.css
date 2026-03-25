@@ -152,8 +152,9 @@ body {
   border-radius: 8px;
   font-size: 12px; font-weight: 500; line-height: 1.4;
 }
-.status.ok  { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-bd); }
-.status.err { background: var(--error-bg);   color: var(--error);   border: 1px solid var(--error-bd);   }
+.status.ok   { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-bd); }
+.status.err  { background: var(--error-bg);   color: var(--error);   border: 1px solid var(--error-bd);   }
+.status.warn { background: var(--warn-bg);    color: var(--warn);    border: 1px solid var(--warn-bd);    }
 
 /* ── Form ───────────────────────────────────────────────────────────────── */
 .form { display: flex; flex-direction: column; gap: 11px; }
