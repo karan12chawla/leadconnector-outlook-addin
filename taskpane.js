@@ -57,51 +57,29 @@ function loadContact() {
     return;
   }
 
-  // Both from.getAsync and subject.getAsync are async — run in parallel
-  let name = '', email = '', subject = '';
-  let done = 0;
+  // In read mode, from and subject are synchronous properties
+  const name    = item.from?.displayName  || '';
+  const email   = item.from?.emailAddress || '';
+  const subject = item.subject            || '';
 
-  function tryRender() {
-    done++;
-    if (done < 2) return;   // wait for both calls
+  hide('loading');
+  checkConfig();
 
-    hide('loading');
-    checkConfig();
+  const parts    = name.trim().split(' ');
+  const fname    = parts[0] || '';
+  const lname    = parts.slice(1).join(' ') || '';
+  const initials = ((fname[0] || '') + (lname[0] || '')).toUpperCase() || '?';
 
-    // Populate contact card
-    const parts    = name.trim().split(' ');
-    const fname    = parts[0] || '';
-    const lname    = parts.slice(1).join(' ') || '';
-    const initials = ((fname[0] || '') + (lname[0] || '')).toUpperCase() || '?';
+  el('f-fname').value  = fname;
+  el('f-lname').value  = lname;
+  el('f-email').value  = email;
+  el('f-note').value   = subject ? `Re: ${subject}` : '';
 
-    el('f-fname').value  = fname;
-    el('f-lname').value  = lname;
-    el('f-email').value  = email;
-    el('f-note').value   = subject ? `Re: ${subject}` : '';
+  el('avatar').textContent  = initials;
+  el('c-name').textContent  = name  || 'Unknown sender';
+  el('c-email').textContent = email || 'No email detected';
 
-    el('avatar').textContent      = initials;
-    el('c-name').textContent      = name  || 'Unknown sender';
-    el('c-email').textContent     = email || 'No email detected';
-
-    show('main');
-  }
-
-  // ── Sender name + email ──────────────────────────────────────────────────
-  item.from.getAsync(result => {
-    if (result.status === Office.AsyncResultStatus.Succeeded) {
-      name  = result.value.displayName  || '';
-      email = result.value.emailAddress || '';
-    }
-    tryRender();
-  });
-
-  // ── Subject ───────────────────────────────────────────────────────────────
-  item.subject.getAsync(result => {
-    if (result.status === Office.AsyncResultStatus.Succeeded) {
-      subject = result.value || '';
-    }
-    tryRender();
-  });
+  show('main');
 }
 
 // ── Check if API credentials are saved ───────────────────────────────────
