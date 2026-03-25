@@ -227,7 +227,7 @@ async function submitContact() {
   // ── Update mode (contact already existed) ────────────────────────────────
   if (existingContactId) {
     try {
-      const res = await fetch(`https://services.leadconnectorhq.com/contacts/${existingContactId}`, {
+      const res  = await fetch(`https://services.leadconnectorhq.com/contacts/${existingContactId}`, {
         method: 'PUT',
         headers: {
           'Content-Type':  'application/json',
@@ -247,6 +247,14 @@ async function submitContact() {
     } catch (err) {
       setStatus(`✗ ${err.message || 'Something went wrong.'}`, false);
     }
+    setLoading(false);
+    return;
+  }
+
+  // ── Search first — check if contact already exists ────────────────────────
+  const existing = await searchContact(email, apiKey, locationId);
+  if (existing) {
+    prefillExisting(existing);
     setLoading(false);
     return;
   }
@@ -273,41 +281,7 @@ async function submitContact() {
       return;
     }
 
-    // Detect duplicate
-    const isDuplicate = !res.ok && /exist|duplicate/i.test(data.message || '');
-    if (isDuplicate) {
-      setLoading(false);
-      await handleExistingContact(email, apiKey, locationId);
-      return;
-    }
-
-    if (data.message) throw new Error(data.message);
-
-    // Fallback: GHL v1
-    const res1  = await fetch('https://rest.gohighlevel.com/v1/contacts/', {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data1 = await res1.json();
-
-    if (res1.ok && data1.contact) {
-      if (note) await addNote(data1.contact.id, note, apiKey);
-      setStatus('✓ Contact added to GoHighLevel!', true);
-      el('btn-add').disabled = true;
-    } else {
-      const isDup1 = /exist|duplicate/i.test(data1.message || '');
-      if (isDup1) {
-        setLoading(false);
-        await handleExistingContact(email, apiKey, locationId);
-        return;
-      }
-      throw new Error(data1.message || `HTTP ${res1.status}`);
-    }
+    throw new Error(data.message || `HTTP ${res.status}`);
 
   } catch (err) {
     setStatus(`✗ ${err.message || 'Something went wrong.'}`, false);
@@ -316,32 +290,31 @@ async function submitContact() {
   setLoading(false);
 }
 
-// ── Fetch existing contact and pre-fill form ──────────────────────────────
-async function handleExistingContact(email, apiKey, locationId) {
+// ── Search for a contact by email ─────────────────────────────────────────
+async function searchContact(email, apiKey, locationId) {
   try {
-    const res  = await fetch(
-      `https://services.leadconnectorhq.com/contacts/search?locationId=${encodeURIComponent(locationId)}&query=${encodeURIComponent(email)}&limit=1`,
-      { headers: { 'Authorization': `Bearer ${apiKey}`, 'Version': '2021-07-28' } }
-    );
+    const url = `https://services.leadconnectorhq.com/contacts/?locationId=${encodeURIComponent(locationId)}&email=${encodeURIComponent(email)}`;
+    const res  = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Version': '2021-07-28' },
+    });
     const data = await res.json();
-    const c    = data.contacts?.[0];
-
-    if (c) {
-      existingContactId = c.id;
-      el('f-fname').value   = c.firstName   || '';
-      el('f-lname').value   = c.lastName    || '';
-      el('f-email').value   = c.email       || '';
-      el('f-phone').value   = c.phone       || '';
-      el('f-company').value = c.companyName || '';
-      el('f-tags').value    = (c.tags || []).join(', ');
-      el('btn-label').textContent = 'Update in GHL';
-      setWarn('Contact already exists — fields pre-filled. Edit and click Update.');
-    } else {
-      setWarn('Contact already exists in GHL.');
-    }
-  } catch (err) {
-    setWarn('Contact already exists in GHL.');
+    return data.contacts?.[0] || null;
+  } catch (_) {
+    return null;
   }
+}
+
+// ── Pre-fill form with existing contact data ──────────────────────────────
+function prefillExisting(c) {
+  existingContactId     = c.id;
+  el('f-fname').value   = c.firstName   || '';
+  el('f-lname').value   = c.lastName    || '';
+  el('f-email').value   = c.email       || '';
+  el('f-phone').value   = c.phone       || '';
+  el('f-company').value = c.companyName || '';
+  el('f-tags').value    = (c.tags || []).join(', ');
+  el('btn-label').textContent = 'Update in GHL';
+  setWarn('Contact already exists — fields pre-filled. Edit and click Update.');
 }
 
 // ── Attach a note to a GHL contact ───────────────────────────────────────
