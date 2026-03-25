@@ -297,13 +297,30 @@ async function submitContact() {
 
 // ── Search for a contact by email ─────────────────────────────────────────
 async function searchContact(email, apiKey, locationId) {
+  const headers = { 'Authorization': `Bearer ${apiKey}`, 'Version': '2021-07-28' };
+
+  // Try /contacts/search endpoint first
   try {
-    const url = `https://services.leadconnectorhq.com/contacts/?locationId=${encodeURIComponent(locationId)}&email=${encodeURIComponent(email)}`;
-    const res  = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${apiKey}`, 'Version': '2021-07-28' },
-    });
+    const url = `https://services.leadconnectorhq.com/contacts/search?locationId=${encodeURIComponent(locationId)}&query=${encodeURIComponent(email)}&limit=1`;
+    const res  = await fetch(url, { headers });
     const data = await res.json();
-    return data.contacts?.[0] || null;
+    if (!res.ok) {
+      setWarn(`Search error (${res.status}): ${data.message || JSON.stringify(data)}`);
+      return null;
+    }
+    const contact = data.contacts?.[0] ?? data.data?.contacts?.[0] ?? null;
+    if (contact) return contact;
+  } catch (e) {
+    setWarn(`Search failed: ${e.message}`);
+    return null;
+  }
+
+  // Fallback: /contacts/ list with query param
+  try {
+    const url = `https://services.leadconnectorhq.com/contacts/?locationId=${encodeURIComponent(locationId)}&query=${encodeURIComponent(email)}&limit=1`;
+    const res  = await fetch(url, { headers });
+    const data = await res.json();
+    return data.contacts?.[0] ?? data.data?.contacts?.[0] ?? null;
   } catch (_) {
     return null;
   }
