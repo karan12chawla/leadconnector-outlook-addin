@@ -7,7 +7,7 @@
 
   <!-- ── Identity ──────────────────────────────────────────────────────────── -->
   <Id>4ac1b9ce-3ec5-4251-b708-e5c2c9d6f3a2</Id>
-  <Version>1.0.0.0</Version>
+  <Version>1.1.0.0</Version>
   <ProviderName>Lead Connector Contacts Sync</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Lead Connector Contacts Sync"/>
