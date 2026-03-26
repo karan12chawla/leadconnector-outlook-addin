@@ -8,17 +8,17 @@
   <!-- ── Identity ──────────────────────────────────────────────────────────── -->
   <Id>4ac1b9ce-3ec5-4251-b708-e5c2c9d6f3a2</Id>
   <Version>1.0.0.0</Version>
-  <ProviderName>GHL Contact Capture</ProviderName>
+  <ProviderName>Lead Connector Contacts Sync</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="GHL Contact Capture"/>
-  <Description DefaultValue="Capture email sender details and add them as contacts in GoHighLevel (LeadConnector) CRM."/>
+  <DisplayName DefaultValue="Lead Connector Contacts Sync"/>
+  <Description DefaultValue="Capture email sender details and sync them as contacts in Lead Connector CRM."/>
 
   <!-- ── Icons (hosted on GitHub Pages) ───────────────────────────────────── -->
   <IconUrl DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/assets/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/assets/icon-64.png"/>
   <SupportUrl DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/"/>
 
-  <!-- ── Trusted domains for GHL API calls ───────────────────────────────── -->
+  <!-- ── Trusted domains for Lead Connector API calls ────────────────────── -->
   <AppDomains>
     <AppDomain>https://services.leadconnectorhq.com</AppDomain>
     <AppDomain>https://rest.gohighlevel.com</AppDomain>
@@ -112,11 +112,11 @@
         <bt:Url id="Taskpane.Url" DefaultValue="https://karan12chawla.github.io/leadconnector-outlook-addin/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
-        <bt:String id="GroupLabel"              DefaultValue="GHL CRM"/>
-        <bt:String id="TaskpaneButton.Label"    DefaultValue="Add to GHL"/>
+        <bt:String id="GroupLabel"              DefaultValue="Lead Connector"/>
+        <bt:String id="TaskpaneButton.Label"    DefaultValue="Sync Contact"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="TaskpaneButton.Tooltip"  DefaultValue="Open the GHL Contact Capture panel to add this sender to GoHighLevel CRM."/>
+        <bt:String id="TaskpaneButton.Tooltip"  DefaultValue="Open Lead Connector Contacts Sync to add this sender to Lead Connector CRM."/>
       </bt:LongStrings>
     </Resources>
 

@@ -1,4 +1,4 @@
-// ── GHL Contact Capture – taskpane.js ─────────────────────────────────────
+// ── Lead Connector Contacts Sync – taskpane.js ─────────────────────────────────────
 'use strict';
 
 const Store = {
@@ -22,7 +22,7 @@ function clearStatus() {
 }
 
 function setLoading(on) {
-  el('btn-label').textContent = on ? 'Adding…' : 'Add to GHL';
+  el('btn-label').textContent = on ? 'Syncing…' : 'Sync Contact';
   el('spinner').classList.toggle('hidden', !on);
   el('btn-add').disabled = on;
 }
@@ -89,7 +89,7 @@ function loadContact() {
 
 async function renderContact(name, email, subject) {
   existingContactId = null;
-  el('btn-label').textContent = 'Add to GHL';
+  el('btn-label').textContent = 'Sync Contact';
   el('btn-add').disabled = false;
 
   const parts    = name.trim().split(' ');
@@ -113,7 +113,7 @@ async function renderContact(name, email, subject) {
   const apiKey     = Store.get('ghlApiKey');
   const locationId = Store.get('ghlLocationId');
   if (apiKey && locationId) {
-    setStatus('Checking GHL…', true);
+    setStatus('Checking Lead Connector…', true);
     const [{ contact, debugMsg }] = await Promise.all([
       email ? searchContact(email, apiKey, locationId) : Promise.resolve({ contact: null, debugMsg: null }),
       fetchTags(apiKey, locationId),
@@ -127,7 +127,7 @@ async function renderContact(name, email, subject) {
   }
 }
 
-// ── Fetch location tags from GHL and populate the select ──────────────────
+// ── Fetch location tags from Lead Connector and populate the select ──────────────────
 async function fetchTags(apiKey, locationId) {
   const sel = el('f-tags');
   try {
@@ -223,7 +223,7 @@ function setWarn(msg) {
 // ── Track existing contact for update mode ────────────────────────────────
 let existingContactId = null;
 
-// ── Submit contact to GoHighLevel ─────────────────────────────────────────
+// ── Submit contact to Lead Connector ─────────────────────────────────────────
 async function submitContact() {
   clearStatus();
 
@@ -257,7 +257,7 @@ async function submitContact() {
     ...(company && { companyName: company }),
     ...(type    && { type }),
     ...(tags.length && { tags }),
-    source: 'Outlook Add-in – GHL Contact Capture',
+    source: 'Outlook Add-in – Lead Connector Contacts Sync',
   };
 
   const updatePayload = {
@@ -287,7 +287,7 @@ async function submitContact() {
       const data = await res.json();
       if (res.ok) {
         if (note) await addNote(existingContactId, note, apiKey);
-        setStatus('✓ Contact updated in GoHighLevel!', true);
+        setStatus('✓ Contact updated in Lead Connector!', true);
         el('btn-add').disabled = true;
       } else {
         throw new Error(data.message || `HTTP ${res.status}`);
@@ -315,7 +315,7 @@ async function submitContact() {
 
     if (res.ok && data.contact) {
       if (note) await addNote(data.contact.id, note, apiKey);
-      setStatus('✓ Contact added to GoHighLevel!', true);
+      setStatus('✓ Contact synced to Lead Connector!', true);
       el('btn-add').disabled = true;
       setLoading(false);
       return;
@@ -374,11 +374,11 @@ function prefillExisting(c) {
   Array.from(el('f-tags').options).forEach(opt => {
     opt.selected = contactTags.includes(opt.value);
   });
-  el('btn-label').textContent = 'Update in GHL';
+  el('btn-label').textContent = 'Update in Lead Connector';
   setWarn('Contact already exists — fields pre-filled. Edit and click Update.');
 }
 
-// ── Attach a note to a GHL contact ───────────────────────────────────────
+// ── Attach a note to a Lead Connector contact ───────────────────────────────────────
 async function addNote(contactId, body, apiKey) {
   try {
     await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/notes`, {
