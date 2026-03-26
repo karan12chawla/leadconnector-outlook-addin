@@ -109,18 +109,39 @@ async function renderContact(name, email, subject) {
   hide('loading');
   show('contact-body');
 
-  // Auto-check GHL for existing contact as soon as email is known
+  // Fetch tags + check for existing contact in parallel
   const apiKey     = Store.get('ghlApiKey');
   const locationId = Store.get('ghlLocationId');
-  if (email && apiKey && locationId) {
+  if (apiKey && locationId) {
     setStatus('Checking GHL…', true);
-    const { contact, debugMsg } = await searchContact(email, apiKey, locationId);
+    const [{ contact, debugMsg }] = await Promise.all([
+      email ? searchContact(email, apiKey, locationId) : Promise.resolve({ contact: null, debugMsg: null }),
+      fetchTags(apiKey, locationId),
+    ]);
     if (contact) {
       clearStatus();
       prefillExisting(contact);
     } else {
-      setWarn(debugMsg || 'Not found in GHL.');
+      setWarn(debugMsg || 'Not found in CRM.');
     }
+  }
+}
+
+// ── Fetch location tags from GHL and populate the select ──────────────────
+async function fetchTags(apiKey, locationId) {
+  const sel = el('f-tags');
+  try {
+    const res  = await fetch(
+      `https://services.leadconnectorhq.com/locations/${encodeURIComponent(locationId)}/tags`,
+      { headers: { 'Authorization': `Bearer ${apiKey}`, 'Version': '2021-07-28' } }
+    );
+    const data = await res.json();
+    const tags = data.tags || [];
+    sel.innerHTML = tags.length
+      ? tags.map(t => `<option value="${t.name}">${t.name}</option>`).join('')
+      : '<option disabled value="">No tags found</option>';
+  } catch (_) {
+    sel.innerHTML = '<option disabled value="">Could not load tags</option>';
   }
 }
 
@@ -187,7 +208,7 @@ function bindEvents() {
   // Submit contact
   el('btn-add').addEventListener('click', submitContact);
 
-  ['f-fname','f-lname','f-email','f-phone','f-company','f-tags'].forEach(id => {
+  ['f-fname','f-lname','f-email','f-phone','f-company'].forEach(id => {
     el(id).addEventListener('keydown', e => { if (e.key === 'Enter') submitContact(); });
   });
 }
@@ -212,7 +233,7 @@ async function submitContact() {
   const phone   = el('f-phone').value.trim();
   const company = el('f-company').value.trim();
   const type    = el('f-type').value;
-  const tagsRaw = el('f-tags').value.trim();
+
   const note    = el('f-note').value.trim();
 
   if (!email) { setStatus('Email is required.', false); return; }
@@ -225,18 +246,28 @@ async function submitContact() {
     return;
   }
 
-  const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+  const tags = Array.from(el('f-tags').selectedOptions).map(o => o.value);
 
-  const payload = {
+  const createPayload = {
     firstName:  fname,
     lastName:   lname,
     email,
     locationId,
     ...(phone   && { phone }),
     ...(company && { companyName: company }),
-    ...(type      && { type }),
+    ...(type    && { type }),
     ...(tags.length && { tags }),
     source: 'Outlook Add-in – GHL Contact Capture',
+  };
+
+  const updatePayload = {
+    firstName:  fname,
+    lastName:   lname,
+    email,
+    ...(phone   && { phone }),
+    ...(company && { companyName: company }),
+    ...(type    && { type }),
+    ...(tags.length && { tags }),
   };
 
   setLoading(true);
@@ -251,7 +282,7 @@ async function submitContact() {
           'Authorization': `Bearer ${apiKey}`,
           'Version':       '2021-07-28',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(updatePayload),
       });
       const data = await res.json();
       if (res.ok) {
@@ -277,7 +308,7 @@ async function submitContact() {
         'Authorization': `Bearer ${apiKey}`,
         'Version':       '2021-07-28',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(createPayload),
     });
 
     const data = await res.json();
@@ -319,9 +350,9 @@ async function searchContact(email, apiKey, locationId) {
         lastMsg = `HTTP ${res.status}: ${data.message || JSON.stringify(data)}`;
         continue;
       }
-      if (contact) return { contact, debugMsg: '' };
+      if (contact) return { contact, debugMsg: null };
 
-      lastMsg = `Status ${res.status} — response: ${JSON.stringify(data).slice(0, 120)}`;
+      lastMsg = null; // found but empty — not an error
     } catch (e) {
       lastMsg = `Fetch error: ${e.message}`;
     }
@@ -339,7 +370,10 @@ function prefillExisting(c) {
   el('f-phone').value   = c.phone       || '';
   el('f-company').value = c.companyName || '';
   el('f-type').value    = c.type        || '';
-  el('f-tags').value    = (c.tags || []).join(', ');
+  const contactTags = c.tags || [];
+  Array.from(el('f-tags').options).forEach(opt => {
+    opt.selected = contactTags.includes(opt.value);
+  });
   el('btn-label').textContent = 'Update in GHL';
   setWarn('Contact already exists — fields pre-filled. Edit and click Update.');
 }

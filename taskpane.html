@@ -85,8 +85,10 @@
           </select>
         </div>
         <div class="field">
-          <label>Tags <span class="opt">(comma-separated)</span></label>
-          <input type="text" id="f-tags" placeholder="lead, outlook, warm" />
+          <label>Tags <span class="opt">(hold Ctrl / ⌘ to multi-select)</span></label>
+          <select id="f-tags" multiple size="4">
+            <option disabled value="">Loading tags…</option>
+          </select>
         </div>
         <div class="field">
           <label>Note <span class="opt">(optional)</span></label>
